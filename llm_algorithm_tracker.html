@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script defer src="https://analytics.supai.app/script.js" data-website-id="9e6c8b1f-7167-4635-b0c2-ea24e3931ac6"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LLM Job Prep — Algorithm Tracker</title>
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --accent: #2563eb;
+    --easy: #15803d;
+    --medium: #b45309;
+    --hard: #b91c1c;
+    --done: #eefbf3;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .wrap {
+    width: min(1200px, calc(100% - 28px));
+    margin: 0 auto;
+    padding: 28px 0 60px;
+  }
+  header {
+    background: linear-gradient(135deg, #111827, #1f3a68);
+    color: white;
+    padding: 28px;
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.12);
+  }
+  header h1 { margin: 0 0 8px; font-size: clamp(26px, 4vw, 42px); }
+  header p { margin: 0; color: #dbeafe; line-height: 1.55; }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 18px 0;
+  }
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .stat .label { color: var(--muted); font-size: 13px; }
+  .stat .value { font-size: 28px; font-weight: 800; margin-top: 5px; }
+  .progress-shell {
+    height: 12px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .progress-bar {
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    transition: width .25s ease;
+  }
+  .toolbar {
+    display: grid;
+    grid-template-columns: 1.4fr .7fr .7fr auto;
+    gap: 10px;
+    margin: 18px 0;
+  }
+  input[type="search"], select, button {
+    min-height: 42px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: white;
+    color: var(--text);
+    padding: 0 12px;
+    font: inherit;
+  }
+  button { cursor: pointer; font-weight: 700; }
+  button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+  button.danger { color: #991b1b; }
+  .category {
+    margin-top: 18px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .category-head {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    background: #fbfcfe;
+  }
+  .category-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .category-title h2 { margin: 0; font-size: 19px; }
+  .category-title span { color: var(--muted); font-size: 13px; }
+  .category-progress {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .problem {
+    display: grid;
+    grid-template-columns: 42px minmax(230px, 1.8fr) 110px minmax(180px, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 13px 18px;
+    border-bottom: 1px solid #f0f2f5;
+  }
+  .problem:last-child { border-bottom: 0; }
+  .problem.done { background: var(--done); }
+  .problem-name { font-weight: 700; }
+  .problem-name small {
+    display: block;
+    margin-top: 3px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .difficulty {
+    display: inline-flex;
+    width: fit-content;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .difficulty.Easy { background: #dcfce7; color: var(--easy); }
+  .difficulty.Medium { background: #ffedd5; color: var(--medium); }
+  .difficulty.Hard { background: #fee2e2; color: var(--hard); }
+  .idea { color: #4b5563; font-size: 14px; }
+  input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .empty {
+    text-align: center;
+    padding: 36px;
+    color: var(--muted);
+  }
+  .footer-tools {
+    margin-top: 24px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .note {
+    margin-top: 18px;
+    padding: 14px 16px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    color: #1e3a8a;
+    line-height: 1.5;
+    font-size: 14px;
+  }
+  @media (max-width: 800px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .toolbar { grid-template-columns: 1fr 1fr; }
+    .problem {
+      grid-template-columns: 34px 1fr auto;
+      gap: 8px;
+    }
+    .idea { grid-column: 2 / 4; }
+  }
+  @media (max-width: 520px) {
+    .stats { grid-template-columns: 1fr 1fr; }
+    .toolbar { grid-template-columns: 1fr; }
+    .problem { padding: 12px; }
+    header { padding: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>LLM Job Prep — Algorithm Tracker</h1>
+    <p>85 curated LeetCode problems: 25 Easy, 54 Medium, 6 Hard. Your progress is saved automatically in this browser.</p>
+  </header>
+
+  <section class="stats">
+    <div class="stat">
+      <div class="label">Overall progress</div>
+      <div class="value"><span id="doneCount">0</span>/85</div>
+      <div class="progress-shell"><div id="overallBar" class="progress-bar"></div></div>
+    </div>
+    <div class="stat"><div class="label">Easy completed</div><div class="value" id="easyCount">0/25</div></div>
+    <div class="stat"><div class="label">Medium completed</div><div class="value" id="mediumCount">0/54</div></div>
+    <div class="stat"><div class="label">Hard completed</div><div class="value" id="hardCount">0/6</div></div>
+  </section>
+
+  <section class="toolbar">
+    <input id="search" type="search" placeholder="Search problem or concept..." />
+    <select id="categoryFilter"><option value="">All categories</option></select>
+    <select id="difficultyFilter">
+      <option value="">All difficulties</option>
+      <option>Easy</option><option>Medium</option><option>Hard</option>
+    </select>
+    <select id="statusFilter">
+      <option value="">All statuses</option>
+      <option value="todo">Not done</option>
+      <option value="done">Done</option>
+    </select>
+  </section>
+
+  <main id="app"></main>
+
+  <div class="footer-tools">
+    <button class="primary" id="exportBtn">Export progress</button>
+    <button id="importBtn">Import progress</button>
+    <input id="importFile" type="file" accept="application/json" hidden />
+    <button class="danger" id="resetBtn">Reset all</button>
+  </div>
+
+  <div class="note">
+    Suggested use: solve each problem once, revisit it after 3–7 days, and only mark it complete when you can explain the pattern, time complexity, and space complexity without relying heavily on hints.
+  </div>
+</div>
+
+<script>
+const problems = [
+  ["Arrays / Strings",1,"1. Two Sum","Easy","Hashing / array basics"],
+  ["Arrays / Strings",2,"121. Best Time to Buy and Sell Stock","Easy","One-pass scanning"],
+  ["Arrays / Strings",3,"217. Contains Duplicate","Easy","Set"],
+  ["Arrays / Strings",4,"54. Spiral Matrix","Medium","Matrix traversal"],
+  ["Arrays / Strings",5,"238. Product of Array Except Self","Medium","Prefix / suffix"],
+  ["Arrays / Strings",6,"53. Maximum Subarray","Medium","Kadane's algorithm"],
+  ["Arrays / Strings",7,"189. Rotate Array","Medium","Array manipulation"],
+  ["Arrays / Strings",8,"128. Longest Consecutive Sequence","Medium","Hash set"],
+  ["Arrays / Strings",9,"15. 3Sum","Medium","Sorting + two pointers"],
+  ["Arrays / Strings",10,"42. Trapping Rain Water","Hard","Two pointers / prefix max"],
+
+  ["Hash Map / Set",11,"242. Valid Anagram","Easy","Frequency counting"],
+  ["Hash Map / Set",12,"383. Ransom Note","Easy","Frequency map"],
+  ["Hash Map / Set",13,"205. Isomorphic Strings","Easy","Character mapping"],
+  ["Hash Map / Set",14,"202. Happy Number","Easy","Set / cycle detection"],
+  ["Hash Map / Set",15,"49. Group Anagrams","Medium","Hash-key design"],
+  ["Hash Map / Set",16,"347. Top K Frequent Elements","Medium","Hash map + heap / buckets"],
+  ["Hash Map / Set",17,"36. Valid Sudoku","Medium","Multiple hash sets"],
+  ["Hash Map / Set",18,"560. Subarray Sum Equals K","Medium","Prefix sum + hash map"],
+
+  ["Two Pointers",19,"125. Valid Palindrome","Easy","Opposite-direction pointers"],
+  ["Two Pointers",20,"283. Move Zeroes","Easy","Fast / slow pointers"],
+  ["Two Pointers",21,"977. Squares of a Sorted Array","Easy","Two ends"],
+  ["Two Pointers",22,"80. Remove Duplicates from Sorted Array II","Medium","Fast / slow pointers"],
+  ["Two Pointers",23,"167. Two Sum II","Medium","Sorted array"],
+  ["Two Pointers",24,"11. Container With Most Water","Medium","Greedy two pointers"],
+  ["Two Pointers",25,"75. Sort Colors","Medium","Three pointers"],
+  ["Two Pointers",26,"881. Boats to Save People","Medium","Sorting + greedy"],
+
+  ["Sliding Window",27,"643. Maximum Average Subarray I","Easy","Fixed-size window"],
+  ["Sliding Window",28,"3. Longest Substring Without Repeating Characters","Medium","Dynamic window"],
+  ["Sliding Window",29,"424. Longest Repeating Character Replacement","Medium","Window invariant"],
+  ["Sliding Window",30,"567. Permutation in String","Medium","Frequency window"],
+  ["Sliding Window",31,"438. Find All Anagrams in a String","Medium","Frequency window"],
+  ["Sliding Window",32,"209. Minimum Size Subarray Sum","Medium","Shrinking window"],
+  ["Sliding Window",33,"904. Fruit Into Baskets","Medium","At-most-K pattern"],
+  ["Sliding Window",34,"76. Minimum Window Substring","Hard","Advanced sliding window"],
+
+  ["Binary Search",35,"704. Binary Search","Easy","Standard binary search"],
+  ["Binary Search",36,"33. Search in Rotated Sorted Array","Medium","Modified binary search"],
+  ["Binary Search",37,"153. Find Minimum in Rotated Sorted Array","Medium","Boundary reasoning"],
+  ["Binary Search",38,"875. Koko Eating Bananas","Medium","Binary search on answer"],
+  ["Binary Search",39,"74. Search a 2D Matrix","Medium","Search-space mapping"],
+  ["Binary Search",40,"981. Time Based Key-Value Store","Medium","Binary search in system context"],
+  ["Binary Search",41,"4. Median of Two Sorted Arrays","Hard","Partition-based search"],
+
+  ["Stack / Queue",42,"20. Valid Parentheses","Easy","Stack"],
+  ["Stack / Queue",43,"232. Implement Queue using Stacks","Easy","Data-structure design"],
+  ["Stack / Queue",44,"155. Min Stack","Medium","Auxiliary state"],
+  ["Stack / Queue",45,"150. Evaluate Reverse Polish Notation","Medium","Stack evaluation"],
+  ["Stack / Queue",46,"739. Daily Temperatures","Medium","Monotonic stack"],
+  ["Stack / Queue",47,"853. Car Fleet","Medium","Stack + ordering"],
+  ["Stack / Queue",48,"84. Largest Rectangle in Histogram","Hard","Monotonic stack"],
+
+  ["Linked List",49,"206. Reverse Linked List","Easy","Pointer manipulation"],
+  ["Linked List",50,"21. Merge Two Sorted Lists","Easy","Linked-list merge"],
+  ["Linked List",51,"141. Linked List Cycle","Easy","Fast / slow pointers"],
+  ["Linked List",52,"143. Reorder List","Medium","Split + reverse + merge"],
+  ["Linked List",53,"138. Copy List with Random Pointer","Medium","Hash map / structural copying"],
+
+  ["Trees",54,"226. Invert Binary Tree","Easy","Recursion"],
+  ["Trees",55,"104. Maximum Depth of Binary Tree","Easy","DFS"],
+  ["Trees",56,"543. Diameter of Binary Tree","Easy","Recursive state"],
+  ["Trees",57,"110. Balanced Binary Tree","Easy","Bottom-up recursion"],
+  ["Trees",58,"100. Same Tree","Easy","Recursive comparison"],
+  ["Trees",59,"102. Binary Tree Level Order Traversal","Medium","BFS"],
+  ["Trees",60,"98. Validate Binary Search Tree","Medium","Tree constraints"],
+  ["Trees",61,"235. Lowest Common Ancestor of a BST","Medium","BST structure"],
+
+  ["BFS / DFS / Graph",62,"733. Flood Fill","Easy","Basic DFS / BFS"],
+  ["BFS / DFS / Graph",63,"200. Number of Islands","Medium","Grid DFS / BFS"],
+  ["BFS / DFS / Graph",64,"133. Clone Graph","Medium","Graph traversal + hash map"],
+  ["BFS / DFS / Graph",65,"417. Pacific Atlantic Water Flow","Medium","Multi-source reasoning"],
+  ["BFS / DFS / Graph",66,"207. Course Schedule","Medium","Cycle detection / topological sort"],
+  ["BFS / DFS / Graph",67,"994. Rotting Oranges","Medium","Multi-source BFS"],
+  ["BFS / DFS / Graph",68,"130. Surrounded Regions","Medium","Boundary DFS / BFS"],
+  ["BFS / DFS / Graph",69,"79. Word Search","Medium","DFS + backtracking"],
+
+  ["Heap / Priority Queue",70,"1046. Last Stone Weight","Easy","Basic heap"],
+  ["Heap / Priority Queue",71,"215. Kth Largest Element in an Array","Medium","Heap / quickselect concept"],
+  ["Heap / Priority Queue",72,"621. Task Scheduler","Medium","Heap + greedy"],
+  ["Heap / Priority Queue",73,"973. K Closest Points to Origin","Medium","Top-K"],
+  ["Heap / Priority Queue",74,"295. Find Median from Data Stream","Hard","Two heaps"],
+
+  ["Greedy / Intervals",75,"55. Jump Game","Medium","Greedy reachability"],
+  ["Greedy / Intervals",76,"435. Non-overlapping Intervals","Medium","Interval greedy"],
+  ["Greedy / Intervals",77,"57. Insert Interval","Medium","Interval manipulation"],
+  ["Greedy / Intervals",78,"763. Partition Labels","Medium","Greedy boundaries"],
+
+  ["Dynamic Programming",79,"70. Climbing Stairs","Easy","Basic 1-D DP"],
+  ["Dynamic Programming",80,"198. House Robber","Medium","State transition"],
+  ["Dynamic Programming",81,"322. Coin Change","Medium","Unbounded DP"],
+  ["Dynamic Programming",82,"300. Longest Increasing Subsequence","Medium","Sequence DP"],
+  ["Dynamic Programming",83,"416. Partition Equal Subset Sum","Medium","0/1 knapsack"],
+  ["Dynamic Programming",84,"1143. Longest Common Subsequence","Medium","2-D DP"],
+  ["Dynamic Programming",85,"72. Edit Distance","Hard","Advanced 2-D DP"]
+].map(([category,id,name,difficulty,idea]) => ({category,id,name,difficulty,idea}));
+
+const STORAGE_KEY = "llm-algorithm-tracker-v1";
+let completed = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]").map(Number));
+
+const app = document.getElementById("app");
+const searchEl = document.getElementById("search");
+const categoryEl = document.getElementById("categoryFilter");
+const difficultyEl = document.getElementById("difficultyFilter");
+const statusEl = document.getElementById("statusFilter");
+
+const categories = [...new Set(problems.map(p => p.category))];
+for (const cat of categories) {
+  const opt = document.createElement("option");
+  opt.value = cat;
+  opt.textContent = cat;
+  categoryEl.appendChild(opt);
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...completed].sort((a,b)=>a-b)));
+}
+
+function updateStats() {
+  const counts = {Easy:0, Medium:0, Hard:0};
+  for (const p of problems) if (completed.has(p.id)) counts[p.difficulty]++;
+  document.getElementById("doneCount").textContent = completed.size;
+  document.getElementById("easyCount").textContent = `${counts.Easy}/25`;
+  document.getElementById("mediumCount").textContent = `${counts.Medium}/54`;
+  document.getElementById("hardCount").textContent = `${counts.Hard}/6`;
+  document.getElementById("overallBar").style.width = `${(completed.size/85)*100}%`;
+}
+
+function render() {
+  const q = searchEl.value.trim().toLowerCase();
+  const cat = categoryEl.value;
+  const diff = difficultyEl.value;
+  const status = statusEl.value;
+
+  const filtered = problems.filter(p => {
+    if (cat && p.category !== cat) return false;
+    if (diff && p.difficulty !== diff) return false;
+    if (status === "done" && !completed.has(p.id)) return false;
+    if (status === "todo" && completed.has(p.id)) return false;
+    if (q && !(p.name + " " + p.idea + " " + p.category).toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  app.innerHTML = "";
+  if (!filtered.length) {
+    app.innerHTML = '<div class="empty">No problems match the current filters.</div>';
+    updateStats();
+    return;
+  }
+
+  const groups = {};
+  for (const p of filtered) (groups[p.category] ||= []).push(p);
+
+  for (const [category, items] of Object.entries(groups)) {
+    const allInCategory = problems.filter(p => p.category === category);
+    const doneInCategory = allInCategory.filter(p => completed.has(p.id)).length;
+
+    const section = document.createElement("section");
+    section.className = "category";
+
+    const head = document.createElement("div");
+    head.className = "category-head";
+    head.innerHTML = `
+      <div class="category-title">
+        <h2>${category}</h2>
+        <span>${allInCategory.length} problems</span>
+      </div>
+      <div class="category-progress">${doneInCategory}/${allInCategory.length} completed</div>
+    `;
+    section.appendChild(head);
+
+    for (const p of items) {
+      const row = document.createElement("div");
+      row.className = "problem" + (completed.has(p.id) ? " done" : "");
+      row.innerHTML = `
+        <div><input type="checkbox" ${completed.has(p.id) ? "checked" : ""} aria-label="Mark ${p.name} complete"></div>
+        <div class="problem-name">${p.name}<small>#${p.id} in this tracker</small></div>
+        <div><span class="difficulty ${p.difficulty}">${p.difficulty}</span></div>
+        <div class="idea">${p.idea}</div>
+      `;
+      row.querySelector("input").addEventListener("change", e => {
+        if (e.target.checked) completed.add(p.id); else completed.delete(p.id);
+        save();
+        render();
+      });
+      section.appendChild(row);
+    }
+    app.appendChild(section);
+  }
+  updateStats();
+}
+
+[searchEl, categoryEl, difficultyEl, statusEl].forEach(el => el.addEventListener("input", render));
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (confirm("Reset all completion progress?")) {
+    completed.clear();
+    save();
+    render();
+  }
+});
+
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    completed: [...completed].sort((a,b)=>a-b)
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "algorithm-progress.json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("importBtn").addEventListener("click", () => {
+  document.getElementById("importFile").click();
+});
+
+document.getElementById("importFile").addEventListener("change", async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    if (!Array.isArray(data.completed)) throw new Error("Invalid progress file");
+    completed = new Set(data.completed.map(Number).filter(id => id >= 1 && id <= 85));
+    save();
+    render();
+  } catch (err) {
+    alert("Could not import this file.");
+  }
+  e.target.value = "";
+});
+
+render();
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"7939e04a4baf43c8b86a560f74aac60e"}' crossorigin="anonymous"></script>
+</body>
+</html>
