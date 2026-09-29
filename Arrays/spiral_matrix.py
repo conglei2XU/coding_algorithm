@@ -1,34 +1,29 @@
 from typing import List
 from collections import deque
 
+
 def spiral_order(matrix: List[List[int]]) -> List[int]:
     if not len(matrix):
         return []
-    start_row, start_col = 0, 0
-    boundary_height, boundary_width = len(matrix), len(matrix[0])
+    left_boundary, top_boundary = 0, 0
+    right_boundary, bottom_boundary = len(matrix[0]) - 1, len(matrix) - 1
     global_spiral_num = []
-
-    while start_col < boundary_width and start_col < boundary_height:
-        bottom_row, left_column, right_column = deque(), deque(), deque()
-        global_spiral_num.extend(matrix[start_row][start_col:boundary_width])
-        for idx_row in range(start_row + 1, boundary_height):
-            if idx_row < boundary_height - 1:
-                left_column.appendleft(matrix[idx_row][start_col])
-                right_column.append(matrix[idx_row][boundary_width - 1])
-            else:
-                for idx_col in range(start_col, boundary_width):
-                    bottom_row.appendleft(matrix[idx_row][idx_col])
-        spiral_travers_res = list(right_column + bottom_row + left_column)
-        global_spiral_num.extend(spiral_travers_res)
-        start_row += 1
-        start_col += 1
-        boundary_height -= 1
-        boundary_width -= 1
+    while left_boundary <= right_boundary and top_boundary <= bottom_boundary:
+        for i in range(left_boundary, right_boundary + 1):
+            global_spiral_num.append(matrix[top_boundary][i])
+        for j in range(top_boundary + 1, bottom_boundary + 1):
+            global_spiral_num.append(matrix[j][right_boundary])
+        if top_boundary != bottom_boundary:
+            for i in range(right_boundary - 1, left_boundary - 1, -1):
+                global_spiral_num.append(matrix[bottom_boundary][i])
+        if left_boundary != bottom_boundary:
+            for j in range(bottom_boundary - 1, top_boundary, -1):
+                global_spiral_num.append(matrix[j][left_boundary])
+        left_boundary += 1
+        top_boundary += 1
+        right_boundary -= 1
+        bottom_boundary -= 1
     return global_spiral_num
-
-
-
-
 
 
 def test_spiral_order():
@@ -64,8 +59,8 @@ def test_spiral_order():
         # Larger square matrix
         (
             [
-                [1,  2,  3,  4],
-                [5,  6,  7,  8],
+                [1, 2, 3, 4],
+                [5, 6, 7, 8],
                 [9, 10, 11, 12],
                 [13, 14, 15, 16]
             ],
@@ -95,4 +90,3 @@ def test_spiral_order():
         print(f"Test {i} passed: {result}")
 
     print("\nAll tests passed!")
-
